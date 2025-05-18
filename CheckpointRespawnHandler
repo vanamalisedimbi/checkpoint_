@@ -1,0 +1,60 @@
+local Players = game:GetService("Players")
+local DataStoreService = game:GetService("DataStoreService")
+local checkpointStore = DataStoreService:GetDataStore("PlayerCheckpoints")
+local checkpointFolder = workspace:WaitForChild("Checkpoints")
+
+-- Table to store last checkpoints per player during the session
+local lastCheckpoints = {}
+
+-- Function to set up checkpoint touch logic
+local function setupCheckpoint(checkpoint)
+	checkpoint.Touched:Connect(function(hit)
+		local character = hit.Parent
+		local player = Players:GetPlayerFromCharacter(character)
+		if player then
+			lastCheckpoints[player.UserId] = checkpoint.Name
+			print(player.Name .. " reached " .. checkpoint.Name)
+		end
+	end)
+end
+
+-- Set up all checkpoints
+for _, checkpoint in pairs(checkpointFolder:GetChildren()) do
+	if checkpoint:IsA("BasePart") and checkpoint.Name:match("^Checkpoint%d+$") then
+		setupCheckpoint(checkpoint)
+	end
+end
+
+-- Load checkpoint data when player joins
+Players.PlayerAdded:Connect(function(player)
+	local success, savedCheckpointName = pcall(function()
+		return checkpointStore:GetAsync(player.UserId)
+	end)
+	if success and savedCheckpointName then
+		lastCheckpoints[player.UserId] = savedCheckpointName
+	end
+
+	player.CharacterAdded:Connect(function(character)
+		wait() -- Ensure character is fully loaded
+		local checkpointName = lastCheckpoints[player.UserId]
+		if checkpointName then
+			local checkpoint = checkpointFolder:FindFirstChild(checkpointName)
+			if checkpoint then
+				character:MoveTo(checkpoint.Position + Vector3.new(0, 5, 0))
+			end
+		end
+	end)
+end)
+
+-- Save checkpoint data when player leaves
+Players.PlayerRemoving:Connect(function(player)
+	local checkpointName = lastCheckpoints[player.UserId]
+	if checkpointName then
+		local success, errorMessage = pcall(function()
+			checkpointStore:SetAsync(player.UserId, checkpointName)
+		end)
+		if not success then
+			warn("Failed to save checkpoint for " .. player.Name .. ": " .. errorMessage)
+		end
+	end
+end)
