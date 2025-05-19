@@ -1,0 +1,7 @@
+-- ServerScript inside the part with ProximityPrompt
+local ProximityPrompt = script.Parent:WaitForChild("ProximityPrompt")
+local RemoteEvent = game.ReplicatedStorage:WaitForChild("EnableGui") -- Make sure this RemoteEvent exists
+
+ProximityPrompt.Triggered:Connect(function(player)
+	RemoteEvent:FireClient(player) -- Fire the RemoteEvent to the triggering player
+end)
