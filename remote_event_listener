@@ -4,4 +4,6 @@ local gui = script.Parent
 
 RemoteEvent.OnClientEvent:Connect(function()
 	gui.Enabled = true
+	task.wait(3)  --Change the value in the parantheses to increase the duration of gui
+	gui.Enabled = false
 end)
