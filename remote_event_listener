@@ -1,0 +1,7 @@
+-- LocalScript inside the GUI (e.g., StarterGui > MyGui > LocalScript)
+local RemoteEvent = game.ReplicatedStorage:WaitForChild("EnableGui")
+local gui = script.Parent
+
+RemoteEvent.OnClientEvent:Connect(function()
+	gui.Enabled = true
+end)
